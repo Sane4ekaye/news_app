@@ -16,20 +16,14 @@ class MainActivity : AppCompatActivity(), OnNewsClickListener {
 
     private val url: String = "https://www.express.co.uk/"
     private var newsArray = ArrayList<NewsItem>()
+    var test: String = ""
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        newsArray.add(NewsItem("Негры чебурашка", "я стульчак ебучий галя"))
-        newsArray.add(NewsItem("Кириешки убили балерину", "В Омске собака схавала слабитьельное а потом пошла в пизду епта сосите"))
-        newsArray.add(NewsItem("Студенты тспк поехали на озеро на лодке", "АхахааххахаААХАХАХАХАХАХАЗХЫХЫЫХЫХЫЩЗДЩДСДЫДХ ЗХЫХ"))
-
-        listNews.layoutManager = LinearLayoutManager(this)
-        val adapter = NewsAdapter(newsArray, this)
-        listNews.adapter = adapter
-
         mainNews()
+
     }
 
     override fun onNewsItemClickListener(position: Int) {
@@ -49,20 +43,37 @@ class MainActivity : AppCompatActivity(), OnNewsClickListener {
         var headerText: String = ""
         if(item.isNotEmpty() && news.isNotEmpty()){
             if(item.equals("third last")) return doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("div[class=section-container hide-on-desktop clearfix before-ad]").select("section[data-vr-zone=$news]").select("ul").select("li[class=$item]").select("h4[class=hide-on-desktop photo-caption]").text()
-            return doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("div[class=section-container hide-on-desktop clearfix before-ad]").select("section[data-vr-zone=$news]").select("ul").select("li[class=$item]").select("h4").text()
+            return doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("section[data-vr-zone=$news]").select("ul").select("li[class=$item]").select("h4").text()
         } else {
             headerText = doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("section[class=$section]").select("h2").text()
             return if(headerText.isEmpty()) doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("section[class=$section]").select("h4").text() else headerText
         }
     }
 
-    fun parseMaintextNews(doc: Document, section: String) : String {
-        return doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("section[class=$section]").select("p").text()
+    fun parseMaintextNews(doc: Document, section: String, news: String = "", item: String = "") : String {
+        var headerText: String = ""
+        if(item.isNotEmpty() && news.isNotEmpty()){
+            return doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("div[class=section-container hide-on-desktop clearfix before-ad]").select("section[data-vr-zone=$news]").select("ul").select("li[class=$item]").select("p").text()
+        } else {
+            return "pizda"
+        }
     }
 
     fun mainNews() {
         thread {
             val doc:Document = Jsoup.connect(url).get()
+            this@MainActivity.runOnUiThread(Runnable {
+                newsArray.add(NewsItem(parseHeaderNews(doc, "wide box main"), doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("section[data-vr-zone=Homepage Top Box]").select("p").text()))
+                newsArray.add(NewsItem(parseHeaderNews(doc, "box latest-stories"), ""))
+                newsArray.add(NewsItem(parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "first"), parseMaintextNews(doc, "block three-stories", "Homepage block number 2", "first")))
+                newsArray.add(NewsItem(parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "second"), parseMaintextNews(doc, "block three-stories", "Homepage block number 2", "second")))
+                newsArray.add(NewsItem(parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "third last"), parseMaintextNews(doc, "block three-stories", "Homepage block number 2", "third last")))
+                //newsArray.add(NewsItem(parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "first"), parseMaintextNews(doc, "block three-stories")))
+
+                listNews.layoutManager = LinearLayoutManager(this)
+                val adapter = NewsAdapter(newsArray, this)
+                listNews.adapter = adapter
+            })
 //            val headerText = parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "third last")
 //            val mainText = parseMaintextNews(doc, "wide box main")
 
