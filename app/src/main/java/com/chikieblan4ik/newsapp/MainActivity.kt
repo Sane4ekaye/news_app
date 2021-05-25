@@ -1,7 +1,9 @@
 package com.chikieblan4ik.newsapp
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.util.Log
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
@@ -10,13 +12,30 @@ import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import kotlin.concurrent.thread
 
-class MainActivity : AppCompatActivity() {
-    val url:String = "https://www.express.co.uk/"
+class MainActivity : AppCompatActivity(), OnNewsClickListener {
+
+    private val url: String = "https://www.express.co.uk/"
+    private var newsArray = ArrayList<NewsItem>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        newsArray.add(NewsItem("Негры чебурашка", "я стульчак ебучий галя"))
+        newsArray.add(NewsItem("Кириешки убили балерину", "В Омске собака схавала слабитьельное а потом пошла в пизду епта сосите"))
+        newsArray.add(NewsItem("Студенты тспк поехали на озеро на лодке", "АхахааххахаААХАХАХАХАХАХАЗХЫХЫЫХЫХЫЩЗДЩДСДЫДХ ЗХЫХ"))
+
+        listNews.layoutManager = LinearLayoutManager(this)
+        val adapter = NewsAdapter(newsArray, this)
+        listNews.adapter = adapter
+
         mainNews()
+    }
+
+    override fun onNewsItemClickListener(position: Int) {
+        val intent = Intent(this, NewsItemActivity::class.java)
+        intent.putExtra("newsItem", newsArray[position])
+        startActivity(intent)
     }
 
     // MainNews
@@ -36,23 +55,25 @@ class MainActivity : AppCompatActivity() {
             return if(headerText.isEmpty()) doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("section[class=$section]").select("h4").text() else headerText
         }
     }
-    fun parseMaintextNews(doc: Document, section: String) : String{
+
+    fun parseMaintextNews(doc: Document, section: String) : String {
         return doc.select("div[class=clear clearfix]").select("div[class=homepage unit-1]").select("section[class=$section]").select("p").text()
     }
-    fun mainNews(){
+
+    fun mainNews() {
         thread {
             val doc:Document = Jsoup.connect(url).get()
-            val headerText = parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "third last")
-            val mainText = parseMaintextNews(doc, "wide box main")
-            this@MainActivity.runOnUiThread{
-                HeaderText.text = headerText
-                textMain.text = mainText
+//            val headerText = parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "third last")
+//            val mainText = parseMaintextNews(doc, "wide box main")
+
+//            this@MainActivity.runOnUiThread{
+//                HeaderText.text = headerText
+//                textMain.text = mainText
 //                HeaderText.text = parseHeaderNews(doc, "box latest-stories")
 //                HeaderText.text = parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "first")
 //                HeaderText.text = parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "second")
 //                HeaderText.text = parseHeaderNews(doc, "block three-stories", "Homepage block number 2", "third last")
-            }
-
+//            }
         }
     }
 
